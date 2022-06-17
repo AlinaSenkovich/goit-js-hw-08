@@ -1,29 +1,37 @@
-import Player from '@vimeo/player';
+import throttle from "lodash.throttle";
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
-//import throttle from 'lodash.throttle';
 
-const iframe = document.querySelector('iframe');
-const player = new Player(iframe);
-//console.log(player);
+const form = document.querySelector(".feedback-form");
 
-const throttle = require('lodash.throttle');
+const LOCALSTORAGE_KEY = "feedback-form-state";
 
-player.on('timeupdate', throttle(function(data) {
-    localStorage.setItem("videoplayer-current-time", JSON.stringify(data));
-}, 1000)
-);
-player.setCurrentTime(JSON.parse(localStorage.getItem("videoplayer-current-time"))
-.seconds).then(function(seconds) {
-    // seconds = the actual time that the player seeked to
-}).catch(function(error) {
-    switch (error.name) {
-        case 'RangeError':
-            // the time was less than 0 or greater than the video’s duration
-            break;
+form.addEventListener('submit', onSubmitForm);
+form.addEventListener('input', throttle(onFormInput, 500));
 
-        default:
-            // some other error occurred
-            break;
+const formData = {};
+
+function onFormInput (event) {
+    formData[event.target.name] = event.target.value;
+    localStorage.setItem('feedback-form-state', JSON.stringify(formData));
+}
+
+function onSubmitForm (event) {
+    console.log(JSON.parse(localStorage.getItem('feedback-form-state')));
+  event.preventDefault();
+  event.currentTarget.reset();
+  localStorage.removeItem('feedback-form-state');
+}
+
+(function dataFromLocalStorage() {
+    const data = JSON.parse(localStorage.getItem('feedback-form-state'));
+    const email = document.querySelector('.feedback-form input');
+    const message = document.querySelector('.feedback-form textarea');
+    if (data) {
+      email.value = data.email;
+      message.value = data.message;
     }
-});
+  })();
+
     
